@@ -23,14 +23,17 @@ public class ThirdMover : MonoBehaviour
 
     public int rotationnew = 180;
 
-    
+    public GameObject Bobot;
 
     public float rotationspeed = 4.0f;
+
+    private Animator PlayerAnim;
 
     // Start is called before the first frame update
     void Start()
     {
         Controller.GetComponent<CharacterController>();
+        PlayerAnim = Bobot.GetComponent<Animator>();
 
         //from.rotation = transform.rotation;
         //to.rotation = rotationnew;
@@ -59,9 +62,27 @@ public class ThirdMover : MonoBehaviour
 
             if (Movement != Vector3.zero)
             {
-                transform.forward = Vector3.Slerp(transform.forward, Movement, rotationspeed * Time.deltaTime); 
+                transform.forward = Vector3.Slerp(transform.forward, Movement, rotationspeed * Time.deltaTime);
+                
+                PlayerAnim.SetBool("Stopped", false);
+                PlayerAnim.SetBool("Walking", true);
+                
+
+
+
+
 
                 //Quaternion.Slerp(transform.rotation, Movement, rotationspeed);
+            }
+            else
+            {
+                
+                PlayerAnim.SetBool("Stopped", true);
+                PlayerAnim.SetBool("Walking", false);
+                PlayerAnim.SetBool("Running", false);
+                PlayerAnim.SetBool("Climbing", false);
+
+
             }
             Controller.Move(Movement);
 
@@ -84,12 +105,15 @@ public class ThirdMover : MonoBehaviour
             {
 
                 speed = sprint;
-
+                PlayerAnim.SetBool("Running", true);
+               
             }
             else
             {
 
                 speed = 10.0f;
+                PlayerAnim.SetBool("Running", false);
+                
             }
 
         }

@@ -16,11 +16,19 @@ public class Jumpy : MonoBehaviour
     public bool canJump;
     public GameObject player;
 
+    public float nextY;
+    public float currentY;
+    public float prevY;
+
     public AnimationCurve Test;
     public float jumpTime;
     public AnimationCurve Climb;
     public float climbTime;
-
+    public GameObject Bobot;
+    public GameObject spawnpoint;
+    private Animator PlayerAnim;
+    public bool falling;
+    public bool landed;
     [Header("Boxcast Settings")]
     public Vector3 size;
     public float offset;
@@ -32,30 +40,35 @@ public class Jumpy : MonoBehaviour
     public float climb_MaxDistance = 0.09f;
 
 
+
     public LayerMask ClimbWall;
+
+    
     public bool CanClimb;
     public bool Grounded => Physics.BoxCast(transform.position + offsetpos1, size / 2, Vector3.down * offset, Quaternion.identity, m_MaxDistance);
     public bool Ceiling => Physics.BoxCast(transform.position + offsetpos2, size / 2, Vector3.up * offset, Quaternion.identity, m_MaxDistance);
 
     public bool Climbable => Physics.BoxCast(transform.position + offsetpos3, sizeclimb / 2, transform.forward * offset, Quaternion.identity, climb_MaxDistance, ClimbWall);
 
-
+    
+    public float CountDownTimer;
 
     // Start is called before the first frame update
     void Start()
     {
-       
+        PlayerAnim = Bobot.GetComponent<Animator>();
+        
     }
 
-    
 
+    
     // Update is called once per frame
     void Update()
     {
 
         Vector3 movementDirection = new Vector3(player.GetComponent<ThirdMover>().DirectionHorizon, 0, player.GetComponent<ThirdMover>().DirectionVertical);
 
-       
+        CountDownTimer -= Time.deltaTime;
 
 
         //float horizontal = Input.GetAxis("Horizontal") * Speed;
@@ -95,7 +108,9 @@ public class Jumpy : MonoBehaviour
         {
 
             jumpTime = 0;
+            
 
+            Debug.Log("Jump buton lifted");
         }
         
             characterController.Move(velocity * Time.deltaTime);
@@ -118,19 +133,97 @@ public class Jumpy : MonoBehaviour
             velocity.y = Climb.Evaluate(climbTime);
 
         }
-        else if (Input.GetKeyUp(KeyCode.W) || Climbable == false)
+        else if (Input.GetKeyUp(KeyCode.W) || Climbable == false && Grounded)
         {
 
             climbTime = 0;
+            
 
         }
 
-        if (velocity.y >= 20f)
+        if (velocity.y >= 20f )
         {
             velocity.y = 20f;
 
 
         }
+
+        nextY = transform.position.y;
+
+        if(nextY != currentY)
+        {
+            prevY = currentY;
+            currentY = nextY;
+
+        }
+
+        if (Input.GetButton("Jump") && currentY > prevY && Grounded == false)
+        {
+            PlayerAnim.SetBool("Jumping", true);
+            PlayerAnim.SetBool("Stopped", false);
+            PlayerAnim.SetBool("Walking", false);
+            PlayerAnim.SetBool("Running", false);
+            PlayerAnim.SetBool("Climbing", false);
+
+
+        }
+
+        if (transform.position.y >= -0.6f)
+        {
+
+            CountDownTimer = 1.0f;
+
+        }
+
+        if(CountDownTimer <= 0.5f)
+        {
+            characterController.enabled = false;
+            characterController.transform.position = spawnpoint.transform.position;
+            characterController.enabled = true;
+
+        }
+
+
+
+        if (currentY < prevY && Grounded == false)
+        {
+            PlayerAnim.SetBool("Jumping", false);
+            PlayerAnim.SetBool("Stopped", false);
+            PlayerAnim.SetBool("Falling", true);
+            PlayerAnim.SetBool("Walking", false);
+            PlayerAnim.SetBool("Running", false);
+            PlayerAnim.SetBool("Climbing", false);
+
+        }
+        if (currentY > prevY && Climbable == true)
+        {
+            PlayerAnim.SetBool("Jumping", false);
+            PlayerAnim.SetBool("Stopped", false);
+            PlayerAnim.SetBool("Climbing", true);
+            PlayerAnim.SetBool("Walking", false);
+            PlayerAnim.SetBool("Running", false);
+        }
+        else
+        {
+
+            PlayerAnim.SetBool("Climbing", false);
+        }
+
+        if ( Grounded == true)
+        {
+            PlayerAnim.SetBool("Jumping", false);
+            PlayerAnim.SetBool("Falling", false);
+            PlayerAnim.SetBool("Stopped", true);
+
+        }
+
+
+
+
+
+
+
+
     }
 
     private void OnDrawGizmos()

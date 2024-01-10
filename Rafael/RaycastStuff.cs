@@ -33,11 +33,11 @@ public class RaycastStuff : MonoBehaviour
 
             //}
             //Debug.DrawLine(ray.origin, hit.point);
-            if (hit.transform.gameObject.tag == "Enemy")
-                EventTest.Invoke();
+            if (hit.transform.gameObject.tag == "Player")
+                Debug.Log("Player is seen");
 
 
-        }
+        } 
 
        // if (Physics.Raycast(ray, out hit, 1000))
           //  print("Object found, distance is" + hit.distance);
